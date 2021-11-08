@@ -27,77 +27,30 @@ packages:
   revision: master
 ```
 
-## How does it work?
+## Example
 
-Some functions in databases raise errors at runtime. For example, the
-Snowflake `TO_BOOLEAN` function takes a string an converts it to a
-boolean. This function may may throw an error if the string contains
-something unexpected. This error stops the execution of the query
+Say for instance you have a model and you want to ensure that:
 
-By leaning on this behaviour, we are able to "raise" an exception
-ourselves at runtime. We can create a simple macro to insert this
-behaviour into a model.
+- the column `foo` is positive
+- the column `bar` is even
+- the column `baz` is positive and even
+- the column `qux` belongs to the set `1, 2, 3`
 
-```sql
-{% macro raise(message) -%}
-
-   TO_BOOLEAN('{{ 'EXCEPTION: ' ~ message }}')
-
-{%- endmacro %}
-```
-
-This will stop execution as long as the message is not 'true' or
-'false'. Since we prefix every message with 'EXCEPTION' the input will
-always fail.
-
-Now that we have the ability to raise an exception we start to
-construct predicate macros which we will use to test our data. Say we
-wanted to ensure that a column only ever has even values, we can write
-a macro `is_even` which will raise a runtime error unless our data
-conforms.
+You would write a model like so:
 
 ```sql
-{% macro is_even(name) -%}
-
-   CASE
-       WHEN {{ name }} % 2 = 0 THEN {{ name }}
-       ELSE {{ raise(name ~ " is not even!") }}
-   END
-
-{%- endmacro %}
-```
-
-We can then use this macro in our models to enforce a _runtime_ column
-constraint.
-
-```sql
-{{ config(materialized='table') }}
-
-WITH source_data AS (
-
-    SELECT 1 AS id
-    UNION ALL
-    SELECT 2 AS id
-
-)
-
 SELECT
 
-  {{ is_even('id') }} AS id
+    {{ spec(positive(), 'foo') }} AS foo,
+    {{ spec(even(), 'bar') }} AS bar,
+    {{ spec(and(positive(), even()), 'baz') }} AS baz,
+    {{ spec(belongs_to([1, 2, 3]), 'qux') }} AS qux
 
-FROM source_data
+FROM source
 ```
 
-Since this model does _not_ contain even values, it will raise an
-exception.
-
-```
-Completed with 1 error and 0 warnings:
-
-Database Error in model my_first_dbt_model (models/example/my_first_dbt_model.sql)
-  100037 (22018): Boolean value 'EXCEPTION: id is not even!' is not recognized
-  compiled SQL at target/run/spec/models/example/my_first_dbt_model.sql
-```
+Now when you run your model, each column will be tested at runtime to
+ensure that it meets your specifications.
 
 ## Concepts
 
@@ -180,4 +133,76 @@ SELECT
   {{ spec(and(even(), belongs_to([1, 2, 3])), 'bar') }} AS bar
 
 FROM source
+```
+
+## How does it work?
+
+Some functions in databases raise errors at runtime. For example, the
+Snowflake `TO_BOOLEAN` function takes a string an converts it to a
+boolean. This function may may throw an error if the string contains
+something unexpected. This error stops the execution of the query
+
+By leaning on this behaviour, we are able to "raise" an exception
+ourselves at runtime. We can create a simple macro to insert this
+behaviour into a model.
+
+```sql
+{% macro raise(message) -%}
+
+   TO_BOOLEAN('{{ 'EXCEPTION: ' ~ message }}')
+
+{%- endmacro %}
+```
+
+This will stop execution as long as the message is not `true` or
+`false`. Since we prefix every message with `EXCEPTION` the input will
+always fail.
+
+Now that we have the ability to raise an exception we start to
+construct predicate macros which we will use to test our data. Say we
+wanted to ensure that a column only ever has even values, we can write
+a macro `is_even` which will raise a runtime error unless our data
+conforms.
+
+```sql
+{% macro is_even(name) -%}
+
+   CASE
+       WHEN {{ name }} % 2 = 0 THEN {{ name }}
+       ELSE {{ raise(name ~ " is not even!") }}
+   END
+
+{%- endmacro %}
+```
+
+We can then use this macro in our models to enforce a _runtime_ column
+constraint.
+
+```sql
+{{ config(materialized='table') }}
+
+WITH source_data AS (
+
+    SELECT 1 AS id
+    UNION ALL
+    SELECT 2 AS id
+
+)
+
+SELECT
+
+  {{ is_even('id') }} AS id
+
+FROM source_data
+```
+
+Since this model does _not_ contain even values, it will raise an
+exception.
+
+```
+Completed with 1 error and 0 warnings:
+
+Database Error in model my_first_dbt_model (models/example/my_first_dbt_model.sql)
+  100037 (22018): Boolean value 'EXCEPTION: id is not even!' is not recognized
+  compiled SQL at target/run/spec/models/example/my_first_dbt_model.sql
 ```
