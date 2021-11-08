@@ -52,6 +52,17 @@ FROM source
 Now when you run your model, each column will be tested at runtime to
 ensure that it meets your specifications.
 
+## Caveat
+
+This project is still being developed and there are a lot things to
+still work out.
+
+The biggest caveat with this approach is that it does not work well
+with views. Most databases will not run the calculation of a view
+until it is queried, therefore the predicates will not be tested until
+someone tries to query them. For this reason, I would suggest that
+this approach is only used on models materialised as tables.
+
 ## Concepts
 
 The **dbt-spec** package adds a few conveniences to the methods
