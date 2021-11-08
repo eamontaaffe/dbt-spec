@@ -31,8 +31,13 @@
 {% macro spec(conditional, column_name) -%}
 
   CASE
-    WHEN {{ conditional | replace("__COLUMN_NAME__", column_name) }} THEN {{ column_name }}
-    ELSE {{ raise("Specification failed: " ~ conditional) }}
+
+  WHEN {{ conditional | replace("__COLUMN_NAME__", column_name) }}
+  THEN {{ column_name }}
+
+  WHEN {{ raise("Specification failed: " ~ conditional) }}
+  THEN {{ column_name }}
+
   END
 
 {%- endmacro %}
