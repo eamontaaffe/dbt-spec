@@ -1,0 +1,9 @@
+name: 'dbt_spec'
+version: '0.0.0'
+config-version: 2
+
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_modules"]
