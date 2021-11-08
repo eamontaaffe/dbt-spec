@@ -15,14 +15,11 @@ expensive secondary computation of the same model. It is also possible
 that the underlying dataset may have changed, meaning that when the
 model is run a second time the output may be different.
 
-## TOC
-
-- [dbt-spec](https://github.com/eamontaaffe/dbt-spec)
-  - [Install](https://github.com/eamontaaffe/dbt-spec#install)
-  - [Example](https://github.com/eamontaaffe/dbt-spec#example)
-  - [Caveats](https://github.com/eamontaaffe/dbt-spec#caveats)
-  - [Concepts](https://github.com/eamontaaffe/dbt-spec#concepts)
-  - [How does it work?](https://github.com/eamontaaffe/dbt-spec#how-does-it-work)
+- [Install](https://github.com/eamontaaffe/dbt-spec#install)
+- [Example](https://github.com/eamontaaffe/dbt-spec#example)
+- [Caveats](https://github.com/eamontaaffe/dbt-spec#caveats)
+- [Concepts](https://github.com/eamontaaffe/dbt-spec#concepts)
+- [How does it work?](https://github.com/eamontaaffe/dbt-spec#how-does-it-work)
 
 ## Install
 
