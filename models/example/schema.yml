@@ -3,3 +3,8 @@ version: 2
 models:
     - name: my_first_dbt_model
       description: "A starter dbt model"
+      columns:
+        - name: foo
+          tests:
+            - spec:
+                predicate: "{{ and(even(), belongs_to([2, 3, 4])) }}"
