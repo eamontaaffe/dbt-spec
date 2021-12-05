@@ -1,25 +1,10 @@
 # dbt-spec
 
 **dbt-spec** is an extension package for
-[dbt](https://github.com/fishtown-analytics/dbt) that allows you to
-tests your data at runtime rather than afterwards.
-
-Typically in dbt you would build a model _then_ run your tests. This
-is the opposite order to what you might be used to in most
-frameworks/languages. This makes it tricky to ensure correctness on
-important models before they are published to production.
-
-A common approach is to genereate a staging model, run the tests on
-that model, then re-run the same model in production. This requires an
-expensive secondary computation of the same model. It is also possible
-that the underlying dataset may have changed, meaning that when the
-model is run a second time the output may be different.
-
-- [Install](https://github.com/eamontaaffe/dbt-spec#install)
-- [Example](https://github.com/eamontaaffe/dbt-spec#example)
-- [Caveats](https://github.com/eamontaaffe/dbt-spec#caveats)
-- [Concepts](https://github.com/eamontaaffe/dbt-spec#concepts)
-- [How does it work?](https://github.com/eamontaaffe/dbt-spec#how-does-it-work)
+[dbt](https://github.com/fishtown-analytics/dbt) based on [Clojure's
+excellent spec package](https://clojure.org/guides/spec). In short,
+`dbt-spec` is an expressive, powerful approach for type specification
+and testing.
 
 ## Install
 
@@ -44,59 +29,104 @@ Say for instance you have a model and you want to ensure that:
 
 You would write a model like so:
 
-```sql
-SELECT
+```yaml
+version: 2
 
-    {{ spec(positive(), 'foo') }} AS foo,
-    {{ spec(even(), 'bar') }} AS bar,
-    {{ spec(and(positive(), even()), 'baz') }} AS baz,
-    {{ spec(belongs_to([1, 2, 3]), 'qux') }} AS qux
-
-FROM source
+models:
+  - name: my_first_dbt_model
+    columns:
+      - name: foo
+        tests:
+          - spec:
+              predicate: "{{ positive() }}"
+      - name: bar
+        tests:
+          - spec:
+              predicate: "{{ even() }}"
+      - name: baz
+        tests:
+          - spec:
+              predicate: "{{ and(positive(), even()) }}"
+      - name: qux
+        tests:
+          - spec:
+              predicate: "{{ belongs_to([1, 2, 3]) }}"
 ```
-
-Now when you run your model, each column will be tested at runtime to
-ensure that it meets your specifications.
-
-## Caveats
-
-This project is still being developed and there are a lot things to
-still work out.
-
-The biggest caveat with this approach is that it does not work well
-with views. Most databases will not run the calculation of a view
-until it is queried, therefore the predicates will not be tested until
-someone tries to query them. For this reason, I would suggest that
-this approach is only used on models materialised as tables.
 
 ## Concepts
 
-The **dbt-spec** package adds a few conveniences to the methods
-described in the, [How does it work?](#how-does-it-work)
-section. There are a few types of macros in this project, conditional
+There are a few different types of macros in this project, conditional
 macros, combinator macros and everything else. Conditional macros are
 designed to be composed together to create complex predicates that can
 suit all your project's needs. The other macros are just there to
 serve the conditionals and make them easy to work with.
 
-### The `spec` macro
+### The `spec` test
 
-The `spec` macro wraps a conditional macro and handles the exception
-throwing behind the scenes. A typical use of the `spec` macro looks
-like this:
+It all starts with the `spec` [generic
+test](https://docs.getdbt.com/docs/building-a-dbt-project/tests#generic-tests). The
+spec test is intended to wrap our conditional and combinator macros to
+produce expressive specifications.
 
-```sql
-SELECT
+```yaml
+version: 2
 
-    {{ spec(belongs_to([1, 2, 3]), 'foo') }} AS foo_even
-
-FROM
-
-    source
+models:
+  - name: foo
+    columns:
+      - name: bar
+        tests:
+          - spec:
+              predicate: "{{ and(even(), belongs_to([2, 3, 4])) }}"
 ```
 
-In this example `belongs_to([1, 2, 3])` is the conditional and the
-column name is `foo`.
+In this example we have created a test for the `bar` column on the
+`foo` model. The test says, this column should only contain even
+numbers in the set `[1, 2, 3]`. For example, this table would pass the
+test.
+
+| id  | bar |
+|-----|-----|
+| `0` | `2` |
+| `1` | `4` |
+| `2` | `2` |
+
+One thing which `dbt-spec` really excels at is testing complex data
+types. Most modern databases support complex types like `json` which
+can be used to store unstructured data. Using `dbt-spec` we can build
+a specification for these datatypes to ensure that they are well
+formed.
+
+```yaml
+version: 2
+
+models:
+  - name: foo
+    columns:
+      - name: bar
+        test:
+          - spec:
+              predicate: >-
+                {{
+                  keys(
+                    required=['baz'],
+                    optional=['qux']
+                  )
+                }}
+```
+
+In this example we are testing the `bar` column on the model `foo` to
+ensure that it contains the key `baz`. Optionally the datatype may
+also contain the `qux` key. The `key` predicate is open by default,
+this means that any extra keys will *not* raise an error. This table
+would pass the test:
+
+| id  | bar                        |
+|-----|----------------------------|
+| `0` | `{"baz": true}`            |
+| `1` | `{"baz": false, "qux": 1}` |
+| `2` | `{"baz": true, "quuz": 2}` |
+
 
 ### Conditional macros
 
@@ -150,76 +180,4 @@ SELECT
   {{ spec(and(even(), belongs_to([1, 2, 3])), 'bar') }} AS bar
 
 FROM source
-```
-
-## How does it work?
-
-Some functions in databases raise errors at runtime. For example, the
-Snowflake `TO_BOOLEAN` function takes a string an converts it to a
-boolean. This function may may throw an error if the string contains
-something unexpected. This error stops the execution of the query
-
-By leaning on this behaviour, we are able to "raise" an exception
-ourselves at runtime. We can create a simple macro to insert this
-behaviour into a model.
-
-```sql
-{% macro raise(message) -%}
-
-   TO_BOOLEAN('{{ 'EXCEPTION: ' ~ message }}')
-
-{%- endmacro %}
-```
-
-This will stop execution as long as the message is not `true` or
-`false`. Since we prefix every message with `EXCEPTION` the input will
-always fail.
-
-Now that we have the ability to raise an exception we start to
-construct predicate macros which we will use to test our data. Say we
-wanted to ensure that a column only ever has even values, we can write
-a macro `is_even` which will raise a runtime error unless our data
-conforms.
-
-```sql
-{% macro is_even(name) -%}
-
-   CASE
-       WHEN {{ name }} % 2 = 0 THEN {{ name }}
-       ELSE {{ raise(name ~ " is not even!") }}
-   END
-
-{%- endmacro %}
-```
-
-We can then use this macro in our models to enforce a _runtime_ column
-constraint.
-
-```sql
-{{ config(materialized='table') }}
-
-WITH source_data AS (
-
-    SELECT 1 AS id
-    UNION ALL
-    SELECT 2 AS id
-
-)
-
-SELECT
-
-  {{ is_even('id') }} AS id
-
-FROM source_data
-```
-
-Since this model does _not_ contain even values, it will raise an
-exception.
-
-```
-Completed with 1 error and 0 warnings:
-
-Database Error in model my_first_dbt_model (models/example/my_first_dbt_model.sql)
-  100037 (22018): Boolean value 'EXCEPTION: id is not even!' is not recognized
-  compiled SQL at target/run/spec/models/example/my_first_dbt_model.sql
 ```
