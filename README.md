@@ -39,24 +39,24 @@ models:
     columns:
       - name: foo
         tests:
-          - spec:
-              predicate: "{{ positive() }}"
+          - spec.test:
+              predicate: "{{ spec.positive() }}"
       - name: bar
         tests:
-          - spec:
-              predicate: "{{ even() }}"
+          - spec.test:
+              predicate: "{{ spec.even() }}"
       - name: baz
         tests:
-          - spec:
-              predicate: "{{ and(positive(), even()) }}"
+          - spec.test:
+              predicate: "{{ spec.and(spec.positive(), spec.even()) }}"
       - name: qux
         tests:
-          - spec:
-              predicate: "{{ belongs_to([1, 2, 3]) }}"
+          - spec.test:
+              predicate: "{{ spec.belongs_to([1, 2, 3]) }}"
       - name: quux
         tests:
-          - spec:
-              predicate: "{{ keys(required=['A'], optional=['B'] }}"
+          - spec.test:
+              predicate: "{{ spec.object_keys(required=['A'], optional=['B'] }}"
 ```
 
 ## Concepts
@@ -82,8 +82,8 @@ models:
     columns:
       - name: bar
         tests:
-          - spec:
-              predicate: "{{ and(even(), belongs_to([2, 3, 4])) }}"
+          - spec.test:
+              predicate: "{{ spec.and(spec.even(), spec.belongs_to([2, 3, 4])) }}"
 ```
 
 In this example we have created a test for the `bar` column on the
@@ -113,10 +113,10 @@ models:
     columns:
       - name: bar
         test:
-          - spec:
+          - spec.test:
               predicate: >-
                 {{
-                  keys(
+                  spec.object_keys(
                     required=['baz'],
                     optional=['qux']
                   )
@@ -146,10 +146,10 @@ models:
     columns:
       - name: bar
         test:
-          - spec:
+          - spec.test:
               predicate: >-
                 {{
-                  keys(
+                  spec.object_keys(
                     required=['baz'],
                     optional=['qux'],
                     closed=True
