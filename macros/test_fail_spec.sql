@@ -6,7 +6,7 @@
 
    WITH failures AS (
      SELECT count(*) AS count_failures
-     FROM ({{ test_spec(model, column_name, predicate) }})
+     FROM ({{ spec.test_test(model, column_name, predicate) }})
    )
 
    -- If there are any failures we are successful, if there are no

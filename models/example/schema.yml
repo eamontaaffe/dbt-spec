@@ -9,11 +9,11 @@ models:
       columns:
         - name: foo
           tests:
-            - spec:
+            - spec.test:
                 predicate: "{{ and(even(), belongs_to([2, 3, 4])) }}"
         - name: bar
           tests:
-            - spec:
+            - spec.test:
                 predicate: >-
                   {{
                     keys(
@@ -21,7 +21,7 @@ models:
                       optional=['B']
                     )
                   }}
-            - spec_fails:
+            - spec.fails:
                 predicate: >-
                   {{
                     keys(

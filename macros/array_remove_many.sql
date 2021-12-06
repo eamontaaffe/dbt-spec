@@ -16,7 +16,7 @@
 
   {%- else -%}
 
-    {{ array_remove(array_remove_many(column_name, ys[1:]), ys[0]) }}
+    {{ spec.array_remove(array_remove_many(column_name, ys[1:]), ys[0]) }}
 
   {%- endif %}
 

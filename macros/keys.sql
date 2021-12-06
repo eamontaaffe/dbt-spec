@@ -27,10 +27,10 @@
 
   {% if closed -%}
 
-    {% set allowed = prepare_keys(required + optional) %}
+    {% set allowed = spec.prepare_keys(required + optional) %}
 
     AND ARRAY_SIZE({{
-      array_remove_many('OBJECT_KEYS(__COLUMN_NAME__)', allowed)
+      spec.array_remove_many('OBJECT_KEYS(__COLUMN_NAME__)', allowed)
     }}) = 0
 
   {% endif %}
@@ -45,7 +45,7 @@
 
   {%- else -%}
 
-      {{ return(["'" ~ xs[0] ~ "'::VARIANT"] + prepare_keys(xs[1:])) }}
+      {{ return(["'" ~ xs[0] ~ "'::VARIANT"] + spec.prepare_keys(xs[1:])) }}
 
   {%- endif %}
 
