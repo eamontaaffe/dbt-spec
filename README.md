@@ -26,6 +26,8 @@ Say for instance you have a model and you want to ensure that:
 - the column `bar` is even
 - the column `baz` is positive and even
 - the column `qux` belongs to the set `1, 2, 3`
+- the column `quux` is an object with the key 'A' required and 'B'
+  optional
 
 You would write a model like so:
 
@@ -51,6 +53,10 @@ models:
         tests:
           - spec:
               predicate: "{{ belongs_to([1, 2, 3]) }}"
+      - name: quux
+        tests:
+          - spec:
+              predicate: "{{ keys(required=['A'], optional=['B'] }}"
 ```
 
 ## Concepts
