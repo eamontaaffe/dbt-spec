@@ -26,7 +26,7 @@ Say for instance you have a model and you want to ensure that:
 - the column `bar` is even
 - the column `baz` is positive and even
 - the column `qux` belongs to the set `1, 2, 3`
-- the column `quux` is an object with the key 'A' required and 'B'
+- the column `quux` is an object with the key `A` required and `B`
   optional
 
 You would write a model like so:
@@ -97,7 +97,9 @@ test.
 | `1` | `4` |
 | `2` | `2` |
 
-One thing which `dbt-spec` really excels at is testing complex data
+### Complex type specifications
+
+The thing which `dbt-spec` really excels at is testing complex data
 types. Most modern databases support complex types like `json` which
 can be used to store unstructured data. Using `dbt-spec` we can build
 a specification for these datatypes to ensure that they are well
@@ -123,15 +125,39 @@ models:
 
 In this example we are testing the `bar` column on the model `foo` to
 ensure that it contains the key `baz`. Optionally the datatype may
-also contain the `qux` key. The `key` predicate is open by default,
-this means that any extra keys will *not* raise an error. This table
-would pass the test:
+also contain the `qux` key. This table would pass the test:
 
 | id  | bar                        |
 |-----|----------------------------|
 | `0` | `{"baz": true}`            |
 | `1` | `{"baz": false, "qux": 1}` |
 | `2` | `{"baz": true, "quuz": 2}` |
+
+The `key` predicate is open by default, this means that any extra keys
+will *not* raise an error. In the previous example, the optional keys
+are mostly there for documentation. If you would like to have a closed
+object definition then use the `closed`.
+
+```yaml
+version: 2
+
+models:
+  - name: foo
+    columns:
+      - name: bar
+        test:
+          - spec:
+              predicate: >-
+                {{
+                  keys(
+                    required=['baz'],
+                    optional=['qux'],
+                    closed=True
+                  )
+                }}
+```
+
+With this test, the row with `id` of `3` will fail the test.
 
 
 ### Conditional macros
