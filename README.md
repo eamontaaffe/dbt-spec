@@ -127,11 +127,11 @@ In this example we are testing the `bar` column on the model `foo` to
 ensure that it contains the key `baz`. Optionally the datatype may
 also contain the `qux` key. This table would pass the test:
 
-| id  | bar                        |
-|-----|----------------------------|
-| `0` | `{"baz": true}`            |
-| `1` | `{"baz": false, "qux": 1}` |
-| `2` | `{"baz": true, "quuz": 2}` |
+| id  | bar                        | status |
+|-----|----------------------------|--------|
+| `0` | `{"baz": true}`            | pass   |
+| `1` | `{"baz": false, "qux": 1}` | pass   |
+| `2` | `{"baz": true, "quuz": 2}` | fail   |
 
 The `key` predicate is open by default, this means that any extra keys
 will *not* raise an error. In the previous example, the optional keys

@@ -17,11 +17,7 @@
 
     ARRAY_CONTAINS('{{ key }}'::VARIANT, OBJECT_KEYS(__COLUMN_NAME__))
 
-    {% if not loop.last -%}
-
-        AND
-
-    {%- endif %}
+    {% if not loop.last %} AND {% endif %}
 
   {%- endfor %}
 
