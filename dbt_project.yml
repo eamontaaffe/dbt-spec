@@ -2,6 +2,8 @@ name: 'spec'
 version: '0.0.0'
 config-version: 2
 
+profile: snowflake
+
 test-paths: ["tests"]
 macro-paths: ["macros"]
 
