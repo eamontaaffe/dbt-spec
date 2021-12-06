@@ -1,10 +1,32 @@
 version: 2
 
 models:
-    - name: my_first_dbt_model
-      description: "A starter dbt model"
+    - name: runtime_testing
+      columns:
+        - name: foo
+
+    - name: generic_testing
       columns:
         - name: foo
           tests:
             - spec:
                 predicate: "{{ and(even(), belongs_to([2, 3, 4])) }}"
+        - name: bar
+          tests:
+            - spec:
+                predicate: >-
+                  {{
+                    keys(
+                      required=['A'],
+                      optional=['B']
+                    )
+                  }}
+            - spec_fails:
+                predicate: >-
+                  {{
+                    keys(
+                      required=['A'],
+                      optional=['B'],
+                      closed=True
+                    )
+                  }}

@@ -1,4 +1,4 @@
-name: 'dbt_spec'
+name: 'spec'
 version: '0.0.0'
 config-version: 2
 
