@@ -2,7 +2,7 @@
 
   Ensure that an object contains certain keys.
 
-  {{ keys(required=['A'], optional=['B']) }}
+  {{ object_keys(required=['A'], optional=['B']) }}
 
   The column *must* contain the required keys. It may contain the
   optional keys. Objects are open by default, meaning that extra keys
@@ -11,7 +11,7 @@
 
 */ #}
 
-{% macro keys(required=[], optional=[], closed=False) -%}
+{% macro object_keys(required=[], optional=[], closed=False) -%}
 
   {% for key in required -%}
 

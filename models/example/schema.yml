@@ -16,7 +16,7 @@ models:
             - spec.test:
                 predicate: >-
                   {{
-                    keys(
+                    object_keys(
                       required=['A'],
                       optional=['B']
                     )
@@ -24,7 +24,7 @@ models:
             - spec.fails:
                 predicate: >-
                   {{
-                    keys(
+                    object_keys(
                       required=['A'],
                       optional=['B'],
                       closed=True

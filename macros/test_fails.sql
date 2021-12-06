@@ -2,7 +2,7 @@
   Ensure that a predicate fails. Basically the opposite of `test_spec`.
 */ #}
 
-{% macro test_spec_fails(model, column_name, predicate) %}
+{% macro test_fails(model, column_name, predicate) %}
 
    WITH failures AS (
      SELECT count(*) AS count_failures
